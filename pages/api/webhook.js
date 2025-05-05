@@ -21,7 +21,7 @@ export default async function handler(req, res) {
     }
 
     const { chainId, tag, confirmed } = data;
-    const { from, to, value, tokenSymbol, transactionHash } = transfer;
+    const { from, to, value, tokenSymbol, txHash } = transfer;
 
     const { error } = await supabase.from('transactions').insert([
       {
@@ -32,13 +32,13 @@ export default async function handler(req, res) {
         to,
         value,
         tokenSymbol,
-        txHash: transactionHash,
+        txHash, // ✅ 修改字段名，确保与数据库字段一致
       },
     ]);
 
     if (error) {
       console.error('❌ Supabase insert error:', error);
-      return res.status(500).json({ message: 'Insert failed' });
+      return res.status(500).json({ message: 'Insert failed', details: error });
     }
 
     return res.status(200).json({ message: 'Success' });
