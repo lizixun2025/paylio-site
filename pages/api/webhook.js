@@ -5,6 +5,11 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 );
 
+// 清理非法字符（如 \u0000）
+function sanitize(input) {
+  return typeof input === 'string' ? input.replace(/\u0000/g, '') : input;
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ message: 'Method Not Allowed' });
@@ -21,24 +26,24 @@ export default async function handler(req, res) {
     }
 
     const { chainId, tag, confirmed } = data;
-    const { from, to, value, tokenSymbol, txHash } = transfer;
+    const { from, to, value, tokenSymbol, transactionHash } = transfer;
 
     const { error } = await supabase.from('transactions').insert([
       {
         chainId,
-        tag,
+        tag: sanitize(tag),
         confirmed,
-        from,
-        to,
+        from: sanitize(from),
+        to: sanitize(to),
         value,
         tokenSymbol,
-        txHash, // ✅ 修改字段名，确保与数据库字段一致
+        txHash: transactionHash,
       },
     ]);
 
     if (error) {
       console.error('❌ Supabase insert error:', error);
-      return res.status(500).json({ message: 'Insert failed', details: error });
+      return res.status(500).json({ message: 'Insert failed' });
     }
 
     return res.status(200).json({ message: 'Success' });
