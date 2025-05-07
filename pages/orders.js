@@ -7,7 +7,11 @@ export default function OrdersPage() {
   useEffect(() => {
     fetch("/api/orders")
       .then((res) => res.json())
-      .then((data) => setOrders(data))
+      .then((data) => {
+        // 过滤掉 txHash 为 null 的记录
+        const filtered = data.filter((item) => item.txHash !== null);
+        setOrders(filtered);
+      })
       .catch((err) => console.error("Failed to fetch orders:", err));
   }, []);
 
